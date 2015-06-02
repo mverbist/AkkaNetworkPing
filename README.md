@@ -5,7 +5,7 @@ In the initial version, only an Actorsystem (name *Akka-Network-Ping*) is create
 
 No Actors are created yet, but there's a command line parser that accepts the following commands from the command-line:
 
-	[pingerCount] pi|ping [pingInterval] [pingCount]
+	[pingerCount] pi|ping [pingCount] [pingInterval]
 	s|status
 	q|quit
 
