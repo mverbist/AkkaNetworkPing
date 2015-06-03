@@ -1,6 +1,9 @@
 package org.bescala.akkanetworkping
 
 import akka.actor.{ActorLogging, Actor, Props, ActorRef}
+import scala.concurrent.duration._
+import scala.language.postfixOps
+import akka.actor.Cancellable
 
 object Pinger {
   case class Ping(sequenceNumber: Int)
@@ -13,6 +16,7 @@ class Pinger(pingServer: ActorRef, pingCount: Int, pingInterval: Int) extends Ac
 
   import Pinger._
   import PingServer._
+  import context.dispatcher
   
   var _seqCounter = 0
   def nextSeq = {
@@ -20,11 +24,16 @@ class Pinger(pingServer: ActorRef, pingCount: Int, pingInterval: Int) extends Ac
     _seqCounter += 1
     ret
   }
-
-  for (i <- 1 to pingCount) {
+  
+  val thisPingerActor = self
+  val a: Cancellable = context.system.scheduler.schedule(0 seconds, pingInterval seconds) {
     val pingMessage = Ping(nextSeq)
     log.info(s"Sending $pingMessage")
-    pingServer ! pingMessage      
+    pingServer ! pingMessage
+    if (_seqCounter == pingCount) {
+      a.cancel()
+    	context.stop(thisPingerActor)      
+    }
   }
   
   val listeningToResponses: Receive = {
