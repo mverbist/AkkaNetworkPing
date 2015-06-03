@@ -9,7 +9,22 @@ object PingMaster {
 
 class PingMaster(pingServer: ActorRef) extends Actor with ActorLogging {
 
-  override def receive: Receive =
-    // TODO: Implement behaviour
-    Actor.emptyBehavior
+  import PingResponseCoordinator._
+
+  var _seqCounter = 0
+  def nextSeq = {
+    val ret = _seqCounter
+    _seqCounter += 1
+    ret
+  }
+
+  val mastering: Receive = {
+    case CreatePinger(pingCount, pingInterval) => {
+      log.info(s"Receiving message ${CreatePinger(pingCount, pingInterval)}")
+      context.system.actorOf(Pinger.props(pingServer, pingCount, pingInterval), s"Pinger-$nextSeq")
+    }
+  }
+
+  override def receive: Receive = mastering
+
 }

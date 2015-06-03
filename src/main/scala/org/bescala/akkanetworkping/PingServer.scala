@@ -11,8 +11,15 @@ object PingServer {
 
 class PingServer extends Actor with ActorLogging {
 
-  override def receive: Receive =
-  // TODO: Implement behaviour
-    Actor.emptyBehavior
+  import PingServer._
+  import Pinger._
+  
+  val reactingToPings: Receive = {
+    case Ping(sequenceNumber) => {
+      sender ! Response(sequenceNumber)
+    }
+  }
 
+  override def receive: Receive = reactingToPings
+    
 }

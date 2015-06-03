@@ -2,9 +2,9 @@ package org.bescala.akkanetworkping
 
 import akka.actor.ActorSystem
 import akka.event.Logging
-
 import scala.annotation.tailrec
 import scala.io.StdIn
+import org.bescala.akkanetworkping.PingResponseCoordinator.CreatePinger
 
 object NetworkPingApp {
 
@@ -43,12 +43,16 @@ class NetworkPingApp(system: ActorSystem) extends CommandReader {
     }
 
   // TODO: Create networkPingCoordinator actor here
+  val pingResponseCoordinator = system.actorOf(PingResponseCoordinator.props(), "pingResponseCoordinator")
 
-
-  protected def createPinger(pingerCount: Int, pingCount: Int, pingInterval: Int) =
+  protected def createPinger(pingerCount: Int, pingCount: Int, pingInterval: Int) = {
     // TODO: Add appropriate action to trigger the creation of Pinger actor(s)
     log.info("Create {} Pinger(s) with ping-count = {} and ping-interval = {} ms", pingerCount, pingCount, pingInterval)
-
+    for (i <- 1 to pingerCount) {
+      pingResponseCoordinator ! CreatePinger(pingCount, pingInterval)
+    }
+  }
+  
   protected def status(): Unit =
     log.info("Status command")
 }
