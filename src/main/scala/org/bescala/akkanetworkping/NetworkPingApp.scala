@@ -5,6 +5,7 @@ import akka.event.Logging
 import scala.annotation.tailrec
 import scala.io.StdIn
 import org.bescala.akkanetworkping.PingResponseCoordinator.CreatePinger
+import com.typesafe.config.ConfigFactory
 
 object NetworkPingApp {
 

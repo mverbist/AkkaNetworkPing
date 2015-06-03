@@ -1,22 +1,32 @@
 package org.bescala.akkanetworkping
 
 import akka.actor.{Actor, ActorLogging, Props, ActorRef}
+import scala.concurrent.duration._
+import com.typesafe.config.ConfigFactory
+import akka.actor.Cancellable
 
 object PingServer {
   case class Response(sequenceNumber: Int)
 
-  def props(): Props = Props(new PingServer)
+  val config = ConfigFactory.load()
+  val responseDelay = config.getInt("AkkaNetworkPing.Response.responseDelay")
+
+  def props(): Props = Props(new PingServer(responseDelay seconds))
 
 }
 
-class PingServer extends Actor with ActorLogging {
+class PingServer(responseDelay: FiniteDuration) extends Actor with ActorLogging {
 
   import PingServer._
   import Pinger._
-  
+  import context.dispatcher
+
   val reactingToPings: Receive = {
     case Ping(sequenceNumber) => {
-      sender ! Response(sequenceNumber)
+      val originalSender = sender
+      val a: Cancellable = context.system.scheduler.scheduleOnce(responseDelay) {
+      	originalSender ! Response(sequenceNumber)
+      }
     }
   }
 
